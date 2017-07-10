@@ -15,35 +15,6 @@ SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = '2done'
 
-
-@click.command()
-def cli():
-    """This command displays the 2done to do list."""
-    
-    credentials = get_credentials()
-    http = credentials.authorize(httplib2.Http())
-    discoveryUrl = ('https://sheets.googleapis.com/$discovery/rest?'
-                    'version=v4')
-    service = discovery.build('sheets', 'v4', http=http,
-                              discoveryServiceUrl=discoveryUrl)
-
-    spreadsheetId = '1WIlw6BvlQtjXO9KtnT4b6XY8d3qAaK5RYDRnzekkVjM'
-    listName = 'Sheet1!A2:C'
-    result = service.spreadsheets().values().get(
-        spreadsheetId=spreadsheetId, range=listName).execute()
-    values = result.get('values', [])
-
-    if not values:
-        print('No data found.')
-    else:
-        data = []
-        data.append(['id', 'todo item', 'context'])
-        for row in values:
-            data.append([row[0], row[1], row[2]])
-        table = AsciiTable(data)
-        table.title = '2done'
-        print(table.table)
-
 def get_credentials():
     home_dir = os.path.expanduser('~')
     credential_dir = os.path.join(home_dir, '.credentials')
@@ -64,7 +35,47 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
+@click.command()
+@click.option('--context', '-c', default='all',
+            help='Displays only items for the specified context')
 
+def cli(context):
+
+    """Displays the 2done to do list."""
+    ###Credentials and API Call 
+    credentials = get_credentials()
+    http = credentials.authorize(httplib2.Http())
+    discoveryUrl = ('https://sheets.googleapis.com/$discovery/rest?'
+                    'version=v4')
+    service = discovery.build('sheets', 'v4', http=http,
+                              discoveryServiceUrl=discoveryUrl)
+
+    ###Specific spreadsheet and retrieving items from data source
+    spreadsheetId = '1WIlw6BvlQtjXO9KtnT4b6XY8d3qAaK5RYDRnzekkVjM'
+    listName = 'Sheet1!A2:C'
+    result = service.spreadsheets().values().get(
+        spreadsheetId=spreadsheetId, range=listName).execute()
+    values = result.get('values', [])
+    
+    ###Filtering values based on context option
+    final_values = []
+    if (context != 'all'):
+        for row in values:
+            if row[2] == context:
+                final_values.append(row)
+    else:
+        final_values = values
+    
+    if not values:
+        print('No data found.')
+    else:
+        data = []
+        data.append(['id', 'todo item', 'context'])
+        for row in final_values:
+            data.append([row[0], row[1], row[2]])
+        table = AsciiTable(data)
+        table.title = '2done'
+        print(table.table)
 
 if __name__ == '__main__':
     main()
