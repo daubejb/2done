@@ -35,11 +35,14 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
-@click.command()
+@click.group()
+def cli():
+    pass
+
+@cli.command()
 @click.option('--context', '-c', default='all',
             help='Displays only items for the specified context')
-
-def cli(context):
+def ls(context):
 
     """Displays the 2done to do list."""
     ###Credentials and API Call 
