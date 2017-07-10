@@ -8,6 +8,7 @@ setup(
         'Click',
         'terminaltables',
         'colorama',
+        'prompt-toolkit',
     ],
     entry_points='''
         [console_scripts]
