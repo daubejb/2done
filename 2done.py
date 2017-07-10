@@ -2,6 +2,7 @@
 #2done.py
 
 from __future__ import print_function
+from terminaltables import AsciiTable
 import httplib2
 import os
 import click
@@ -42,7 +43,7 @@ def get_credentials():
     return credentials
 
 
-
+@click.command()
 def cli(): 
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
@@ -60,11 +61,13 @@ def cli():
     if not values:
         print('No data found.')
     else:
-        print('ID, Name, Context')
+        data = []
+        data.append(['id', 'todo item', 'context'])
         for row in values:
-            # Print columns A and E, which correspond to indices 0 and 4.
-            print('%s, %s, %s' % (row[0], row[1], row[2]))
-
+            data.append([row[0], row[1], row[2]])
+        table = AsciiTable(data)
+        table.title = '2done'
+        print(table.table)
 
 if __name__ == '__main__':
     main()

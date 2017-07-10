@@ -6,6 +6,8 @@ setup(
     py_modules=['2done'],
     install_requires=[
         'Click',
+        'terminaltables',
+        'colorama',
     ],
     entry_points='''
         [console_scripts]
