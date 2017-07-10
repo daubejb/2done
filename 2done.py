@@ -4,7 +4,7 @@
 from __future__ import print_function
 import httplib2
 import os
-
+import click
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
@@ -41,7 +41,9 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
-def main():
+
+
+def cli(): 
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     discoveryUrl = ('https://sheets.googleapis.com/$discovery/rest?'

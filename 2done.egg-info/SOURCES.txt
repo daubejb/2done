@@ -1,0 +1,7 @@
+2done.py
+2done.egg-info/PKG-INFO
+2done.egg-info/SOURCES.txt
+2done.egg-info/dependency_links.txt
+2done.egg-info/entry_points.txt
+2done.egg-info/requires.txt
+2done.egg-info/top_level.txt
