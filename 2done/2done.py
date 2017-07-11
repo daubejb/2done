@@ -11,6 +11,8 @@ from prompt_toolkit.contrib.completers import WordCompleter
 import httplib2
 import os
 import argparse
+import textwrap
+
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
@@ -139,11 +141,20 @@ def main():
         data = []
         data.append(['id', 'type', 'todo item', 'context'])
         for row in final_values:
+            total_length = len(row[0]) + len(row[1]) + len(row[2]) + \
+            len(row[3])
+            print(total_length)
+            if(total_length > 80):
+                shortened_text = textwrap.fill(row[2], width=50)
+                row[2] = shortened_text
+        for row in final_values:
             data.append([row[0], row[1], row[2], row[3]])
         table = AsciiTable(data)
+        width = table.table_width
+        print(width)
         table.title = '2done'
+        table.inner_row_border = True
         print(table.table)
-
     if __name__ == '__main__':
         main()
 
