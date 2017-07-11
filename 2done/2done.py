@@ -79,6 +79,22 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
+def decompose_item_string_to_parts(str):
+    word_list = str.split()
+    first_word = word_list[0]
+    last_word = word_list[-1]
+    word_one = ""
+    word_last = ""
+    if first_word in words:
+        word_one = first_word
+        del word_list[0]
+    if last_word in contexts:
+        word_last = last_word
+        del word_list[-1]
+    item_words =' '.join(word_list)
+    values = ['=row()-1', word_one, item_words, word_last]
+    return values
+
 def main():
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
@@ -97,19 +113,8 @@ def main():
                 auto_suggest=AutoSuggestFromHistory(),
                 completer=TypeCompleter)
         print('the input text is %s' % (inp))
-        word_list = inp.split()
-        first_word = word_list[0]
-        last_word = word_list[-1]
-        word_one = ""
-        word_last = ""
-        if first_word in words:
-            word_one = first_word
-            del word_list[0]
-        if last_word in contexts:
-            word_last = last_word
-            del word_list[-1]
-        item_words =' '.join(word_list)
-        values = ['=row()-1', word_one, item_words, word_last]
+        
+        values = decompose_item_string_to_parts(inp) 
         body = {
                 "range": RANGE,
                 "majorDimension": 'ROWS',
