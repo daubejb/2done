@@ -43,6 +43,13 @@ try:
 except ImportError:
     flags = None
 
+def terminal_size():
+    import fcntl, termios, struct
+    th, tw, hp, wp = struct.unpack('HHHH',
+        fcntl.ioctl(0, termios.TIOCGWINSZ,
+        struct.pack('HHHH', 0, 0, 0, 0)))
+    return tw
+
 def get_credentials():
     """Gets valid user credentials from storage.
 
@@ -110,12 +117,6 @@ def main():
                         values
                     ],
         }
-        print('word_list %s' % (word_list))
-        print('first_word %s' % (first_word))
-        print('last_word %s' % (last_word))
-        print('word_one %s' % (word_one))
-        print('word_last %s' % (word_last))
-        print('values %s' % (values))
         result = service.spreadsheets().values().append(
             spreadsheetId=SPREADSHEET_ID, range=RANGE,
             valueInputOption='USER_ENTERED',
@@ -129,6 +130,7 @@ def main():
        
     ###Filtering values based on context option
     final_values = []
+    term_width = terminal_size() - 30
     if (args.context != 'all'):
         for row in values:
             if row[3] == args.context:
@@ -143,15 +145,16 @@ def main():
         for row in final_values:
             total_length = len(row[0]) + len(row[1]) + len(row[2]) + \
             len(row[3])
-            print(total_length)
-            if(total_length > 80):
-                shortened_text = textwrap.fill(row[2], width=50)
+            other_columns = len(row[0]) + len(row[1]) + len(row[3]) - 5
+            short_length = term_width - other_columns
+            if(total_length > term_width):
+                shortened_text = textwrap.fill(row[2], width=short_length)
                 row[2] = shortened_text
+
         for row in final_values:
             data.append([row[0], row[1], row[2], row[3]])
         table = AsciiTable(data)
         width = table.table_width
-        print(width)
         table.title = '2done'
         table.inner_row_border = True
         print(table.table)
