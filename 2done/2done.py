@@ -23,7 +23,8 @@ CLIENT_SECRET_FILE = 'client_secrets.json'
 APPLICATION_NAME = '2done'
 SPREADSHEET_ID = '1WIlw6BvlQtjXO9KtnT4b6XY8d3qAaK5RYDRnzekkVjM'
 RANGE = 'Sheet1!A2:D100'
-
+ACTIONS = ['Action', 'FollowUp', 'Idea', 'Research', 'Schedule']
+CONTEXTS = ['Home', 'Work']
 try:
     parser = argparse.ArgumentParser(description='a free and open source \
             to do application accessible from anywhere')
@@ -85,10 +86,10 @@ def decompose_item_string_to_parts(str):
     last_word = word_list[-1]
     word_one = ""
     word_last = ""
-    if first_word in words:
+    if first_word in ACTIONS:
         word_one = first_word
         del word_list[0]
-    if last_word in contexts:
+    if last_word in CONTEXTS:
         word_last = last_word
         del word_list[-1]
     item_words =' '.join(word_list)
@@ -105,39 +106,44 @@ def instantiate_api_service(object):
                               discoveryServiceUrl=discoveryUrl)
     return service
 
+def add_item_to_list(object):
+    service = object
+    TypeCompleter = WordCompleter(ACTIONS, ignore_case=True)
+    ContextCompleter = WordCompleter(CONTEXTS, ignore_case=True)
+    inp = prompt('Enter to do item > ',
+            history=FileHistory('history.txt'),
+            auto_suggest=AutoSuggestFromHistory(),
+            completer=TypeCompleter)
+    print('the input text is %s' % (inp))
+    
+    values = decompose_item_string_to_parts(inp) 
+    body = {
+            "range": RANGE,
+            "majorDimension": 'ROWS',
+            "values": [
+                    values
+                ],
+    }
+    result = service.spreadsheets().values().append(
+        spreadsheetId=SPREADSHEET_ID, range=RANGE,
+        valueInputOption='USER_ENTERED',
+        body=body).execute()
+
+def get_list_data(object):
+    service = object
+    result = service.spreadsheets().values().get(
+        spreadsheetId=SPREADSHEET_ID, range=RANGE).execute()
+    values = result.get('values', [])
+    return values
+
 def main():
     credentials = get_credentials()
     service = instantiate_api_service(credentials)
     
     if args.add:
-        words = ['Action', 'FollowUp', 'Idea', 'Research', 'Schedule']
-        contexts = ['Home', 'Work']
-        TypeCompleter = WordCompleter(words, ignore_case=True)
-        ContextCompleter = WordCompleter(contexts, ignore_case=True)
-        inp = prompt('Enter to do item > ',
-                history=FileHistory('history.txt'),
-                auto_suggest=AutoSuggestFromHistory(),
-                completer=TypeCompleter)
-        print('the input text is %s' % (inp))
-        
-        values = decompose_item_string_to_parts(inp) 
-        body = {
-                "range": RANGE,
-                "majorDimension": 'ROWS',
-                "values": [
-                        values
-                    ],
-        }
-        result = service.spreadsheets().values().append(
-            spreadsheetId=SPREADSHEET_ID, range=RANGE,
-            valueInputOption='USER_ENTERED',
-            body=body).execute()
+        add_item_to_list(service)
 
-    
-    ###Specific spreadsheet and retrieving items from data source
-    result = service.spreadsheets().values().get(
-        spreadsheetId=SPREADSHEET_ID, range=RANGE).execute()
-    values = result.get('values', [])
+    values = get_list_data(service) 
        
     ###Filtering values based on context option
     final_values = []
