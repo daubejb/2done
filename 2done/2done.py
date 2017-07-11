@@ -29,7 +29,7 @@ CONTEXTS = ['Home', 'Work']
 try:
     parser = argparse.ArgumentParser(description='a free and open source \
             to do application accessible from anywhere')
-    parser.add_argument('-a','--add',
+    parser.add_argument('-a', '--add',
             help='add an item to the list',
             action='store_true',
             dest='add')
@@ -39,8 +39,14 @@ try:
             dest='context',
             default='all',
             choices=['all','home','work'])
+    parser.add_argument('-t','--type',
+            help='list only the items with the specified type',
+            action='store',
+            dest='type',
+            default='all',
+            choices=ACTIONS)
     args = parser.parse_args()
-    print(args.add)
+    print(args.type)
 
 except ImportError:
     flags = None
@@ -150,9 +156,18 @@ def main():
     ###Filtering values based on context option
     final_values = []
     term_width = get_terminal_size() - 30
-    if (args.context != 'all'):
+    
+    if args.type != 'all' and args.context != 'all':
+        for row in values:
+            if row[1] == args.type and row[3] == args.context:
+                final_values.append(row)
+    elif (args.context != 'all'):
         for row in values:
             if row[3] == args.context:
+                final_values.append(row)
+    elif (args.type != 'all'):
+        for row in values:
+            if row[1] == args.type:
                 final_values.append(row)
     else:
         final_values = values    
