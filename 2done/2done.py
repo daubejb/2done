@@ -25,6 +25,7 @@ SPREADSHEET_ID = '1WIlw6BvlQtjXO9KtnT4b6XY8d3qAaK5RYDRnzekkVjM'
 RANGE = 'Sheet1!A2:D100'
 ACTIONS = ['Action', 'FollowUp', 'Idea', 'Research', 'Schedule']
 CONTEXTS = ['Home', 'Work']
+
 try:
     parser = argparse.ArgumentParser(description='a free and open source \
             to do application accessible from anywhere')
@@ -45,6 +46,9 @@ except ImportError:
     flags = None
 
 def get_terminal_size():
+    # Gets window width from terinal
+    # Returns:
+    #     Tw, terminal width.
     import fcntl, termios, struct
     th, tw, hp, wp = struct.unpack('HHHH',
         fcntl.ioctl(0, termios.TIOCGWINSZ,
@@ -52,14 +56,12 @@ def get_terminal_size():
     return tw
 
 def get_credentials():
-    """Gets valid user credentials from storage.
+   # Gets valid user credentials from storage.
+   # If nothing has been stored, or if the stored credentials are invalid,
+   # the OAuth2 flow is completed to obtain the new credentials.
+   # Returns:
+   #     Credentials, the obtained credential.
 
-    If nothing has been stored, or if the stored credentials are invalid,
-    the OAuth2 flow is completed to obtain the new credentials.
-
-    Returns:
-        Credentials, the obtained credential.
-    """
     home_dir = os.path.expanduser('~')
     credential_dir = os.path.join(home_dir, '.credentials')
     if not os.path.exists(credential_dir):
@@ -84,8 +86,8 @@ def decompose_item_string_to_parts(str):
     word_list = str.split()
     first_word = word_list[0]
     last_word = word_list[-1]
-    word_one = ""
-    word_last = ""
+    word_one = " "
+    word_last = " "
     if first_word in ACTIONS:
         word_one = first_word
         del word_list[0]
