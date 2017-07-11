@@ -95,14 +95,20 @@ def decompose_item_string_to_parts(str):
     values = ['=row()-1', word_one, item_words, word_last]
     return values
 
-def main():
-    credentials = get_credentials()
+def instantiate_api_service(object):
+    credentials = object
     http = credentials.authorize(httplib2.Http())
     ###API Call 
     discoveryUrl = ('https://sheets.googleapis.com/$discovery/rest?'
                     'version=v4')
     service = discovery.build('sheets', 'v4', http=http,
                               discoveryServiceUrl=discoveryUrl)
+    return service
+
+def main():
+    credentials = get_credentials()
+    service = instantiate_api_service(credentials)
+    
     if args.add:
         words = ['Action', 'FollowUp', 'Idea', 'Research', 'Schedule']
         contexts = ['Home', 'Work']
