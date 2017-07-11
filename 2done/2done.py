@@ -44,7 +44,7 @@ try:
 except ImportError:
     flags = None
 
-def terminal_size():
+def get_terminal_size():
     import fcntl, termios, struct
     th, tw, hp, wp = struct.unpack('HHHH',
         fcntl.ioctl(0, termios.TIOCGWINSZ,
@@ -147,7 +147,7 @@ def main():
        
     ###Filtering values based on context option
     final_values = []
-    term_width = terminal_size() - 30
+    term_width = get_terminal_size() - 30
     if (args.context != 'all'):
         for row in values:
             if row[3] == args.context:
