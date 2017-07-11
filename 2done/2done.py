@@ -20,17 +20,24 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CLIENT_SECRET_FILE = 'client_secrets.json'
 APPLICATION_NAME = '2done'
 SPREADSHEET_ID = '1WIlw6BvlQtjXO9KtnT4b6XY8d3qAaK5RYDRnzekkVjM'
+RANGE = 'Sheet1!A2:D100'
 
 try:
     parser = argparse.ArgumentParser(description='a free and open source \
             to do application accessible from anywhere')
-    parser.add_argument('--list','-ls', action='store_true')
-    parser.add_argument('--add','-a', help='add an item to the \
-            list', type=str)
-    parser.add_argument('--context', '-c', help='list only the items \
-            with the specified context', nargs='?', const='all',
-            default='all', type=str)
-    args = parser.parse_known_args()
+    parser.add_argument('-a','--add',
+            help='add an item to the list',
+            action='store_true',
+            dest='add')
+    parser.add_argument('-c', '--context',
+            help='list only the items with the specified context',
+            action='store',
+            dest='context',
+            default='all',
+            choices=['all','home','work'])
+    args = parser.parse_args()
+    print(args.add)
+
 except ImportError:
     flags = None
 
@@ -64,8 +71,6 @@ def get_credentials():
     return credentials
 
 def main():
-    
-
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     ###API Call 
@@ -73,19 +78,58 @@ def main():
                     'version=v4')
     service = discovery.build('sheets', 'v4', http=http,
                               discoveryServiceUrl=discoveryUrl)
+    if args.add:
+        words = ['Action', 'FollowUp', 'Idea', 'Research', 'Schedule']
+        contexts = ['Home', 'Work']
+        TypeCompleter = WordCompleter(words, ignore_case=True)
+        ContextCompleter = WordCompleter(contexts, ignore_case=True)
+        inp = prompt('Enter to do item > ',
+                history=FileHistory('history.txt'),
+                auto_suggest=AutoSuggestFromHistory(),
+                completer=TypeCompleter)
+        print('the input text is %s' % (inp))
+        word_list = inp.split()
+        first_word = word_list[0]
+        last_word = word_list[-1]
+        word_one = ""
+        word_last = ""
+        if first_word in words:
+            word_one = first_word
+            del word_list[0]
+        if last_word in contexts:
+            word_last = last_word
+            del word_list[-1]
+        item_words =' '.join(word_list)
+        values = ['=row()-1', word_one, item_words, word_last]
+        body = {
+                "range": RANGE,
+                "majorDimension": 'ROWS',
+                "values": [
+                        values
+                    ],
+        }
+        print('word_list %s' % (word_list))
+        print('first_word %s' % (first_word))
+        print('last_word %s' % (last_word))
+        print('word_one %s' % (word_one))
+        print('word_last %s' % (word_last))
+        print('values %s' % (values))
+        result = service.spreadsheets().values().append(
+            spreadsheetId=SPREADSHEET_ID, range=RANGE,
+            valueInputOption='USER_ENTERED',
+            body=body).execute()
 
+    
     ###Specific spreadsheet and retrieving items from data source
-    listName = 'Sheet1!A2:C'
     result = service.spreadsheets().values().get(
-        spreadsheetId=SPREADSHEET_ID, range=listName).execute()
+        spreadsheetId=SPREADSHEET_ID, range=RANGE).execute()
     values = result.get('values', [])
        
     ###Filtering values based on context option
     final_values = []
-    print(args[1])
-    if (args[1] != 'all'):
+    if (args.context != 'all'):
         for row in values:
-            if row[2] == args[1]:
+            if row[3] == args.context:
                 final_values.append(row)
     else:
         final_values = values    
@@ -93,47 +137,13 @@ def main():
         print('No data found.')
     else:
         data = []
-        data.append(['id', 'todo item', 'context'])
+        data.append(['id', 'type', 'todo item', 'context'])
         for row in final_values:
-            data.append([row[0], row[1], row[2]])
+            data.append([row[0], row[1], row[2], row[3]])
         table = AsciiTable(data)
         table.title = '2done'
         print(table.table)
 
-def add():
-    listName = 'Sheet1!A2:C'
-    service = api()
-    words = ['Action', 'Schedule', 'Research', 'Idea']
-    contexts = ['Home', 'Work']
-    TypeCompleter = WordCompleter(words, ignore_case=True)
-    ContextCompleter = WordCompleter(contexts, ignore_case=True)
-    inp = prompt('Enter to do item > ',
-            history=FileHistory('history.txt'),
-            auto_suggest=AutoSuggestFromHistory(),
-            completer=TypeCompleter)
-    
-    word_list = inp.split()
-    count = len(word_list)
-    first_word = word_list[0]
-    last_word = word_list[-1]
-    word_one = ""
-    word_last = ""
-    if first_word in words:
-        word_one = first_word
-        word_list = word_list[1:]
-    if last_word in contexts:
-        word_last = last_word
-        word_list = word_list[-1:]
-    values = [word_one, word_list, word_last]
-    body = {
-      'values': values
-    }
-    result = service.spreadsheets().values().append(
-        spreadsheetId=SPREADSHEET_ID, range=listName,
-        body=body).execute()
-
-    print(inp)
-
-if __name__ == '__main__':
-    main()
+    if __name__ == '__main__':
+        main()
 
