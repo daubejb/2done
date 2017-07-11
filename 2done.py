@@ -10,18 +10,31 @@ from prompt_toolkit.contrib.completers import WordCompleter
 
 import httplib2
 import os
-import click
+import argparse
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 
-SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly'
-CLIENT_SECRET_FILE = 'client_secret.json'
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+CLIENT_SECRET_FILE = 'client_secrets.json'
 APPLICATION_NAME = '2done'
 SPREADSHEET_ID = '1WIlw6BvlQtjXO9KtnT4b6XY8d3qAaK5RYDRnzekkVjM'
 
+try:
+    flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
+except ImportError:
+    flags = None
+
 def get_credentials():
+    """Gets valid user credentials from storage.
+
+    If nothing has been stored, or if the stored credentials are invalid,
+    the OAuth2 flow is completed to obtain the new credentials.
+
+    Returns:
+        Credentials, the obtained credential.
+    """
     home_dir = os.path.expanduser('~')
     credential_dir = os.path.join(home_dir, '.credentials')
     if not os.path.exists(credential_dir):
@@ -41,45 +54,29 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
-def api():
-
+def main():
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
-    
     ###API Call 
     discoveryUrl = ('https://sheets.googleapis.com/$discovery/rest?'
                     'version=v4')
     service = discovery.build('sheets', 'v4', http=http,
                               discoveryServiceUrl=discoveryUrl)
-    return service
-
-
-@click.group()
-def cli():
-    pass
-
-
-@cli.command()
-@click.option('--context', '-c', default='all',
-            help='Displays only items for the specified context')
-def ls(context):
-    """Displays the to do list."""
-    service = api()
 
     ###Specific spreadsheet and retrieving items from data source
     listName = 'Sheet1!A2:C'
     result = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID, range=listName).execute()
     values = result.get('values', [])
-    
+       
     ###Filtering values based on context option
     final_values = []
-    if (context != 'all'):
-        for row in values:
-            if row[2] == context:
-                final_values.append(row)
-    else:
-        final_values = values
+#    if (context != 'all'):
+#        for row in values:
+#            if row[2] == context:
+#                final_values.append(row)
+#    else:
+    final_values = values
     
     if not values:
         print('No data found.')
@@ -92,19 +89,39 @@ def ls(context):
         table.title = '2done'
         print(table.table)
 
-@cli.command()
 def add():
-    """Adds a to do item to the list"""
-    TypeCompleter = WordCompleter(['Action Item', 'Schedule',
-        'Research', 'Idea'], ignore_case=True)
-
+    listName = 'Sheet1!A2:C'
+    service = api()
+    words = ['Action', 'Schedule', 'Research', 'Idea']
+    contexts = ['Home', 'Work']
+    TypeCompleter = WordCompleter(words, ignore_case=True)
+    ContextCompleter = WordCompleter(contexts, ignore_case=True)
     inp = prompt('Enter to do item > ',
             history=FileHistory('history.txt'),
             auto_suggest=AutoSuggestFromHistory(),
             completer=TypeCompleter)
     
-    print(inp)
+    word_list = inp.split()
+    count = len(word_list)
+    first_word = word_list[0]
+    last_word = word_list[-1]
+    word_one = ""
+    word_last = ""
+    if first_word in words:
+        word_one = first_word
+        word_list = word_list[1:]
+    if last_word in contexts:
+        word_last = last_word
+        word_list = word_list[-1:]
+    values = [word_one, word_list, word_last]
+    body = {
+      'values': values
+    }
+    result = service.spreadsheets().values().append(
+        spreadsheetId=SPREADSHEET_ID, range=listName,
+        body=body).execute()
 
+    print(inp)
 
 if __name__ == '__main__':
     main()
