@@ -22,7 +22,15 @@ APPLICATION_NAME = '2done'
 SPREADSHEET_ID = '1WIlw6BvlQtjXO9KtnT4b6XY8d3qAaK5RYDRnzekkVjM'
 
 try:
-    flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
+    parser = argparse.ArgumentParser(description='a free and open source \
+            to do application accessible from anywhere')
+    parser.add_argument('--list','-ls', action='store_true')
+    parser.add_argument('--add','-a', help='add an item to the \
+            list', type=str)
+    parser.add_argument('--context', '-c', help='list only the items \
+            with the specified context', nargs='?', const='all',
+            default='all', type=str)
+    args = parser.parse_known_args()
 except ImportError:
     flags = None
 
@@ -48,6 +56,7 @@ def get_credentials():
         flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
         flow.user_agent = APPLICATION_NAME
         if flags:
+            flags=tools.argparser.parse_args(args=[])
             credentials = tools.run_flow(flow, store, flags)
         else: # Needed only for compatibility with Python 2.6
             credentials = tools.run(flow, store)
@@ -55,6 +64,8 @@ def get_credentials():
     return credentials
 
 def main():
+    
+
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     ###API Call 
@@ -71,13 +82,13 @@ def main():
        
     ###Filtering values based on context option
     final_values = []
-#    if (context != 'all'):
-#        for row in values:
-#            if row[2] == context:
-#                final_values.append(row)
-#    else:
-    final_values = values
-    
+    print(args[1])
+    if (args[1] != 'all'):
+        for row in values:
+            if row[2] == args[1]:
+                final_values.append(row)
+    else:
+        final_values = values    
     if not values:
         print('No data found.')
     else:

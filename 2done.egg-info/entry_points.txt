@@ -1,4 +1,3 @@
+[console_scripts]
+2 = 2done.2done:main
 
-        [console_scripts]
-        2=2done:cli
-    

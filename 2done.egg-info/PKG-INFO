@@ -1,10 +1,11 @@
 Metadata-Version: 1.0
 Name: 2done
 Version: 1.0
-Summary: UNKNOWN
-Home-page: UNKNOWN
-Author: UNKNOWN
-Author-email: UNKNOWN
+Summary: todo app to manage todo list from terminal with                 data residing on a google sheet
+Home-page: http://www.github.com/daubejb/2done
+Author: Jeffrey B. Daube
+Author-email: daubejb@gmail.com
 License: UNKNOWN
 Description: UNKNOWN
+Keywords: todo to do list application 2done daube design                 daubedesign
 Platform: UNKNOWN

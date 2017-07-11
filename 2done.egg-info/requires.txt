@@ -1,4 +1,2 @@
-Click
 terminaltables
-colorama
-prompt-toolkit
+prompt_toolkit
