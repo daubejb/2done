@@ -30,6 +30,7 @@ ACTIONS = ['action', 'followUp', 'idea', 'research', 'schedule', 'update']
 CONTEXTS = ['home', 'work']
 DISPLAY_LIST_AFTER_ADD_ITEM = True
 DISPLAY_LINES_BETWEEN_ITEMS = True
+WEB = 'https://docs.google.com/spreadsheets/d/%s' % (SPREADSHEET_ID)
 
 try:
     parser = argparse.ArgumentParser(description='a free and open source \
@@ -52,7 +53,7 @@ try:
             choices=ACTIONS)
     parser.add_argument('-w','--web',
             help='open %s file in a webbrowser' % (APPLICATION_NAME),
-            action='store',
+            action='store_true',
             dest='web')
     args = parser.parse_args()
     print(args.type)
@@ -165,8 +166,7 @@ def get_configs():
             'display_lines_between_items')
 
 def open_list_in_webbrowser():
-    webbrowser.open('https://docs.google.com/spreadsheets/d/' %s
-            (SPREADSHEET_ID))
+    webbrowser.open(WEB)
 
 def main():
 
