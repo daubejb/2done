@@ -7,6 +7,7 @@ from prompt_toolkit import prompt
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.contrib.completers import WordCompleter
+from .config import check_for_config_file
 
 import httplib2
 import os
@@ -145,6 +146,8 @@ def get_list_data(object):
     return values
 
 def main():
+
+    check_for_config_file()
     credentials = get_credentials()
     service = instantiate_api_service(credentials)
     
