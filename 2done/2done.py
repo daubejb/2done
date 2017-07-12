@@ -8,6 +8,7 @@ from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.contrib.completers import WordCompleter
 from .config import check_for_config_file
+from configparser import ConfigParser
 
 import httplib2
 import os
@@ -26,6 +27,8 @@ SPREADSHEET_ID = '1WIlw6BvlQtjXO9KtnT4b6XY8d3qAaK5RYDRnzekkVjM'
 RANGE = 'Sheet1!A2:D100'
 ACTIONS = ['Action', 'FollowUp', 'Idea', 'Research', 'Schedule']
 CONTEXTS = ['Home', 'Work']
+DISPLAY_LIST_AFTER_ADD_ITEM = True
+DISPLAY_LINES_BETWEEN_ITEMS = True
 
 try:
     parser = argparse.ArgumentParser(description='a free and open source \
@@ -145,9 +148,21 @@ def get_list_data(object):
     values = result.get('values', [])
     return values
 
+def get_configs():
+    parser = ConfigParser()
+    parser.read('config.ini')
+
+    global DISPLAY_LIST_AFTER_ADD_ITEM
+    DISPLAY_LIST_AFTER_ADD_ITEM = parser.getboolean('display_options',
+            'display_list_after_add_item')
+    global DISPLAY_LINES_BETWEEN_ITEMS
+    DISPLAY_LINES_BETWEEN_ITEMS = parser.getboolean('display_options',
+            'display_lines_between_items')
+
 def main():
 
     check_for_config_file()
+    get_configs()
     credentials = get_credentials()
     service = instantiate_api_service(credentials)
     
@@ -192,8 +207,9 @@ def main():
             data.append([row[0], row[1], row[2], row[3]])
         table = AsciiTable(data)
         width = table.table_width
-        table.title = '2done'
-        table.inner_row_border = True
+        table.title = APPLICATION_NAME
+        if DISPLAY_LINES_BETWEEN_ITEMS == True:
+            table.inner_row_border = True
         print(table.table)
     if __name__ == '__main__':
         main()
