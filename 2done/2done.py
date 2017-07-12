@@ -59,7 +59,6 @@ try:
             action='store_true',
             dest='web')
     args = parser.parse_args()
-    print(args.type)
 
 except ImportError:
     flags = None
@@ -171,13 +170,25 @@ def get_configs():
 def open_list_in_webbrowser():
     webbrowser.open(WEB)
 
+
+def display_table(object):
+
+    table = object
+    width = table.table_width
+    table.title = APPLICATION_NAME
+    if DISPLAY_LINES_BETWEEN_ITEMS == True:
+        table.inner_row_border = True
+    print(table.table)
+
 def main():
 
     check_for_config_file()
     get_configs()
     credentials = get_credentials()
     service = instantiate_api_service(credentials)
+
     
+    ###Evaluate options containing no arguments
     if args.web:
         open_list_in_webbrowser()
 
@@ -204,6 +215,7 @@ def main():
                 final_values.append(row)
     else:
         final_values = values    
+    
     if not values:
         print('No data found.')
     else:
@@ -221,11 +233,7 @@ def main():
         for row in final_values:
             data.append([row[0], row[1], row[2], row[3]])
         table = AsciiTable(data)
-        width = table.table_width
-        table.title = APPLICATION_NAME
-        if DISPLAY_LINES_BETWEEN_ITEMS == True:
-            table.inner_row_border = True
-        print(table.table)
+        display_table(table)
     if __name__ == '__main__':
         main()
 
