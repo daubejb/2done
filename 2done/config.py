@@ -3,8 +3,9 @@
 
 import configparser
 import os
+import os.path
 
-configfile_name = "config.ini"
+configfile_name = os.path.join(os.environ['HOME'], '.2done_config.ini')
 
 # Check if there is already a configurtion file
 

@@ -12,6 +12,7 @@ from configparser import ConfigParser
 
 import httplib2
 import os
+import os.path
 import argparse
 import textwrap
 import webbrowser
@@ -31,6 +32,8 @@ CONTEXTS = ['home', 'work']
 DISPLAY_LIST_AFTER_ADD_ITEM = True
 DISPLAY_LINES_BETWEEN_ITEMS = True
 WEB = 'https://docs.google.com/spreadsheets/d/%s' % (SPREADSHEET_ID)
+HISTORY_FILE = os.path.join(os.environ['HOME'], '.2done_history.txt')
+CONFIG_FILE = os.path.join(os.environ['HOME'], '.2done_config.ini')
 
 try:
     parser = argparse.ArgumentParser(description='a free and open source \
@@ -129,7 +132,7 @@ def add_item_to_list(object):
     TypeCompleter = WordCompleter(ACTIONS, ignore_case=True)
     ContextCompleter = WordCompleter(CONTEXTS, ignore_case=True)
     inp = prompt('Enter to do item > ',
-            history=FileHistory('history.txt'),
+            history=FileHistory(HISTORY_FILE),
             auto_suggest=AutoSuggestFromHistory(),
             completer=TypeCompleter)
     print('the input text is %s' % (inp))
@@ -156,7 +159,7 @@ def get_list_data(object):
 
 def get_configs():
     parser = ConfigParser()
-    parser.read('config.ini')
+    parser.read(CONFIG_FILE)
 
     global DISPLAY_LIST_AFTER_ADD_ITEM
     DISPLAY_LIST_AFTER_ADD_ITEM = parser.getboolean('display_options',
