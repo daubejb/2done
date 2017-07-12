@@ -14,6 +14,7 @@ import httplib2
 import os
 import argparse
 import textwrap
+import webbrowser
 
 from apiclient import discovery
 from oauth2client import client
@@ -24,9 +25,9 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CLIENT_SECRET_FILE = 'client_secrets.json'
 APPLICATION_NAME = '2done'
 SPREADSHEET_ID = '1WIlw6BvlQtjXO9KtnT4b6XY8d3qAaK5RYDRnzekkVjM'
-RANGE = 'Sheet1!A2:D100'
-ACTIONS = ['Action', 'FollowUp', 'Idea', 'Research', 'Schedule']
-CONTEXTS = ['Home', 'Work']
+RANGE = '2done!A2:D100'
+ACTIONS = ['action', 'followUp', 'idea', 'research', 'schedule', 'update']
+CONTEXTS = ['home', 'work']
 DISPLAY_LIST_AFTER_ADD_ITEM = True
 DISPLAY_LINES_BETWEEN_ITEMS = True
 
@@ -49,6 +50,10 @@ try:
             dest='type',
             default='all',
             choices=ACTIONS)
+    parser.add_argument('-w','--web',
+            help='open %s file in a webbrowser' % (APPLICATION_NAME),
+            action='store',
+            dest='web')
     args = parser.parse_args()
     print(args.type)
 
@@ -159,6 +164,10 @@ def get_configs():
     DISPLAY_LINES_BETWEEN_ITEMS = parser.getboolean('display_options',
             'display_lines_between_items')
 
+def open_list_in_webbrowser():
+    webbrowser.open('https://docs.google.com/spreadsheets/d/' %s
+            (SPREADSHEET_ID))
+
 def main():
 
     check_for_config_file()
@@ -166,6 +175,9 @@ def main():
     credentials = get_credentials()
     service = instantiate_api_service(credentials)
     
+    if args.web:
+        open_list_in_webbrowser()
+
     if args.add:
         add_item_to_list(service)
 
