@@ -61,12 +61,16 @@ try:
             help='mark an item as done by id',
             action='store',
             dest='id_done')
-    parser.add_argument('-t','--type',
-            help='list only the items with the specified type',
+    parser.add_argument('-g','--group',
+            help='list only the items with the specified group',
             action='store',
-            dest='type',
+            dest='group',
             default='all',
             choices=ACTIONS)
+    parser.add_argument('-t','--today',
+            help='toggle an item as important for today by id',
+            action='store',
+            dest='id_to_prioritize')
     parser.add_argument('-w','--web',
             help='open %s file in a webbrowser' % (APPLICATION_NAME),
             action='store_true',
@@ -140,12 +144,12 @@ def instantiate_api_service(object):
 
 def add_item_to_list(object):
     service = object
-    TypeCompleter = WordCompleter(ACTIONS, ignore_case=True)
+    GroupCompleter = WordCompleter(ACTIONS, ignore_case=True)
     ContextCompleter = WordCompleter(CONTEXTS, ignore_case=True)
     inp = prompt('Enter to do item > ',
             history=FileHistory(HISTORY_FILE),
             auto_suggest=AutoSuggestFromHistory(),
-            completer=TypeCompleter)
+            completer=GroupCompleter)
     word_list = inp.split()
     first_word = word_list[0]
     second_word = word_list[1]
@@ -313,17 +317,17 @@ def main():
     final_values = []
     term_width = get_terminal_size() - 30
     
-    if args.type != 'all' and args.context != 'all':
+    if args.group != 'all' and args.context != 'all':
         for row in values:
-            if row[1] == args.type and row[3] == args.context:
+            if row[1] == args.group and row[3] == args.context:
                 final_values.append(row)
     elif (args.context != 'all'):
         for row in values:
             if row[3] == args.context:
                 final_values.append(row)
-    elif (args.type != 'all'):
+    elif (args.group != 'all'):
         for row in values:
-            if row[1] == args.type:
+            if row[1] == args.group:
                 final_values.append(row)
     else:
         final_values = values    
@@ -333,7 +337,7 @@ def main():
     else:
         data = []
         data.append([HEADER_ROW_COLOR + Style.BRIGHT + 'id',
-            'type', 'todo item',
+            'group', 'todo item',
             'context' + Fore.RESET + Style.RESET_ALL])
         for row in final_values:
             total_length = len(row[0]) + len(row[1]) + len(row[2]) + \
