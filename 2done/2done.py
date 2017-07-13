@@ -59,7 +59,6 @@ try:
             action='store_true',
             dest='web')
     args = parser.parse_args()
-    print(args)
 except ImportError:
     flags = None
 
@@ -134,7 +133,12 @@ def add_item_to_list(object):
             history=FileHistory(HISTORY_FILE),
             auto_suggest=AutoSuggestFromHistory(),
             completer=TypeCompleter)
-    print('the input text is %s' % (inp))
+    word_list = inp.split()
+    first_word = word_list[0]
+    second_word = word_list[1]
+    third_word = word_list[2]
+    print('%s %s %s... added to the list' % (first_word, second_word,
+        third_word))
     
     values = decompose_item_string_to_parts(inp) 
     body = {
