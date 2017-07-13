@@ -10,6 +10,7 @@ from prompt_toolkit.contrib.completers import WordCompleter
 from .config import check_for_config_file
 from configparser import ConfigParser
 
+import time
 import httplib2
 import os
 import os.path
@@ -26,7 +27,8 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CLIENT_SECRET_FILE = 'client_secrets.json'
 APPLICATION_NAME = '2done'
 SPREADSHEET_ID = '1WIlw6BvlQtjXO9KtnT4b6XY8d3qAaK5RYDRnzekkVjM'
-RANGE = '2done!A2:D100'
+RANGE = '2done!A2:D1000'
+DONE_RANGE = 'done!A2:E1000'
 ACTIONS = ['action', 'followUp', 'idea', 'research', 'schedule', 'update']
 CONTEXTS = ['home', 'work']
 DISPLAY_LIST_AFTER_ADD_ITEM = True
@@ -48,10 +50,14 @@ try:
             dest='context',
             default='all',
             choices=['all','home','work'])
-    parser.add_argument('-d','--delete',
+    parser.add_argument('--delete',
             help='delete an item by id',
             action='store',
             dest='id_to_delete')
+    parser.add_argument('-do', '--done',
+            help='mark an item as done by id',
+            action='store',
+            dest='id_done')
     parser.add_argument('-t','--type',
             help='list only the items with the specified type',
             action='store',
@@ -187,6 +193,38 @@ def delete_item_from_list(object, id):
     if 'replies' in response and 'spreadsheetId' in response:
         print('Item # %s deleted from list' % id)
 
+def done_item_from_list(object, id):
+    service = object
+    id = int(id)
+    A1 = id + 1
+    startIndex = id
+    endIndex = id + 1
+    ranges = ['%s!A%s:D%s' % (APPLICATION_NAME, A1, A1)]
+
+
+    request = service.spreadsheets().values().batchGet(
+            spreadsheetId=SPREADSHEET_ID,
+            ranges=ranges,
+            valueRenderOption='UNFORMATTED_VALUE',
+            dateTimeRenderOption='FORMATTED_STRING')
+
+    response = request.execute()
+    
+    values = response['valueRanges'][0]['values'][0]
+    values[0] = '=row()-1'
+    values.insert(len(values), time.strftime("%Y-%m-%d"))
+    body = {
+            "range": DONE_RANGE,
+            "majorDimension": 'ROWS',
+            "values": [
+                    values
+                ],
+    }
+    result = service.spreadsheets().values().append(
+        spreadsheetId=SPREADSHEET_ID, range=DONE_RANGE,
+        valueInputOption='USER_ENTERED',
+        body=body).execute()
+    delete_item_from_list(service, id)
 def get_list_data(object):
     service = object
     result = service.spreadsheets().values().get(
@@ -235,6 +273,9 @@ def main():
     
     if args.id_to_delete:
         delete_item_from_list(service, args.id_to_delete)
+
+    if args.id_done:
+        done_item_from_list(service, args.id_done)
 
     values = get_list_data(service) 
        
