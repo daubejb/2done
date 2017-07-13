@@ -51,7 +51,7 @@ try:
     parser.add_argument('-d','--delete',
             help='delete an item by id',
             action='store',
-            dest='delete')
+            dest='id_to_delete')
     parser.add_argument('-t','--type',
             help='list only the items with the specified type',
             action='store',
@@ -233,8 +233,8 @@ def main():
     if args.add:
         add_item_to_list(service)
     
-    if args.delete:
-        delete_item_from_list(service, args.delete)
+    if args.id_to_delete:
+        delete_item_from_list(service, args.id_to_delete)
 
     values = get_list_data(service) 
        
