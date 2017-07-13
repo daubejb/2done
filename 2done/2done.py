@@ -228,12 +228,34 @@ def done_item_from_list(object, id):
         valueInputOption='USER_ENTERED',
         body=body).execute()
     delete_item_from_list(service, id)
+
 def get_list_data(object):
     service = object
     result = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID, range=RANGE).execute()
     values = result.get('values', [])
     return values
+
+def get_ANSI_color(string):
+    color = string
+    color.upper()
+    if color == 'GREEN':
+        color = '\033[32m'
+    elif color == 'RED':
+        color = '\033[31m'
+    elif color == 'YELLOW':
+        color = '\033[33m'
+    elif color == 'BLUE':
+        color = '\033[34m'
+    elif color == 'PINK':
+        color = '\033[35m'
+    elif color == 'CYAN':
+        color = '\033[36m'
+    elif color == 'NORMAL':
+        color = '\033[39m'
+    elif color == 'WHITE':
+        color = '\033[37m'
+    return color
 
 def get_configs():
     parser = ConfigParser()
@@ -246,7 +268,10 @@ def get_configs():
     DISPLAY_LINES_BETWEEN_ITEMS = parser.getboolean('display_options',
             'display_lines_between_items')
     global HEADER_ROW_COLOR
-    HEADER_ROW_COLOR = parser.get('display_options','header_row_color')
+    temp_HEADER_ROW_COLOR = parser.get('display_options','header_row_color')
+    HEADER_ROW_COLOR = get_ANSI_color(temp_HEADER_ROW_COLOR)
+
+    
 def open_list_in_webbrowser():
     webbrowser.open(WEB)
 
@@ -307,7 +332,8 @@ def main():
         print('No data found.')
     else:
         data = []
-        data.append([Fore.GREEN + Style.BRIGHT + 'id', 'type', 'todo item',
+        data.append([HEADER_ROW_COLOR + Style.BRIGHT + 'id',
+            'type', 'todo item',
             'context' + Fore.RESET + Style.RESET_ALL])
         for row in final_values:
             total_length = len(row[0]) + len(row[1]) + len(row[2]) + \
