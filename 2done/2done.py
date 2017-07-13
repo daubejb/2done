@@ -29,8 +29,8 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CLIENT_SECRET_FILE = 'client_secrets.json'
 APPLICATION_NAME = '2done'
 SPREADSHEET_ID = '1WIlw6BvlQtjXO9KtnT4b6XY8d3qAaK5RYDRnzekkVjM'
-RANGE = '2done!A2:D1000'
-DONE_RANGE = 'done!A2:E1000'
+RANGE = '2done!A2:E1000'
+DONE_RANGE = 'done!A2:F1000'
 ACTIONS = ['action', 'followUp', 'idea', 'research', 'schedule', 'update']
 CONTEXTS = ['home', 'work']
 DISPLAY_LIST_AFTER_ADD_ITEM = True
@@ -129,7 +129,7 @@ def decompose_item_string_to_parts(str):
         word_last = last_word
         del word_list[-1]
     item_words =' '.join(word_list)
-    values = ['=row()-1', word_one, item_words, word_last]
+    values = ['=row()-1', '', word_one, item_words, word_last]
     return values
 
 def instantiate_api_service(object):
@@ -206,7 +206,7 @@ def done_item_from_list(object, id):
     A1 = id + 1
     startIndex = id
     endIndex = id + 1
-    ranges = ['%s!A%s:D%s' % (APPLICATION_NAME, A1, A1)]
+    ranges = ['%s!A%s:E%s' % (APPLICATION_NAME, A1, A1)]
 
 
     request = service.spreadsheets().values().batchGet(
@@ -232,12 +232,7 @@ def done_item_from_list(object, id):
         valueInputOption='USER_ENTERED',
         body=body).execute()
     delete_item_from_list(service, id)
-
-def toggle_item_priority(object, id):
-    service = object
-    id = int(id)
-
-
+    
 def get_list_data(object):
     service = object
     result = service.spreadsheets().values().get(
@@ -248,22 +243,14 @@ def get_list_data(object):
 def get_ANSI_color(string):
     color = string
     color.upper()
-    if color == 'GREEN':
-        color = '\033[32m'
-    elif color == 'RED':
-        color = '\033[31m'
-    elif color == 'YELLOW':
-        color = '\033[33m'
-    elif color == 'BLUE':
-        color = '\033[34m'
-    elif color == 'PINK':
-        color = '\033[35m'
-    elif color == 'CYAN':
-        color = '\033[36m'
-    elif color == 'NORMAL':
-        color = '\033[39m'
-    elif color == 'WHITE':
-        color = '\033[37m'
+    if color == 'GREEN': color = '\033[32m'
+    elif color == 'RED': color = '\033[31m'
+    elif color == 'YELLOW': color = '\033[33m'
+    elif color == 'BLUE': color = '\033[34m'
+    elif color == 'PINK': color = '\033[35m'
+    elif color == 'CYAN': color = '\033[36m'
+    elif color == 'NORMAL': color = '\033[39m'
+    elif color == 'WHITE': color = '\033[37m'
     return color
 
 def get_configs():
@@ -279,14 +266,11 @@ def get_configs():
     global HEADER_ROW_COLOR
     temp_HEADER_ROW_COLOR = parser.get('display_options','header_row_color')
     HEADER_ROW_COLOR = get_ANSI_color(temp_HEADER_ROW_COLOR)
-
     
 def open_list_in_webbrowser():
     webbrowser.open(WEB)
 
-
 def display_table(object):
-
     table = object
     width = table.table_width
     table.title = APPLICATION_NAME
@@ -294,31 +278,37 @@ def display_table(object):
         table.inner_row_border = True
     print(table.table)
 
-def prepare_table_items_for_display(object, values):
+def filter_table_items_for_display(object, values):
     args = object
-    final_values = []
+    final_items = []
     if args.group != 'all' and args.context != 'all':
         for row in values:
-            if row[1] == args.group and row[3] == args.context:
-                final_values.append(row)
+            if row[2] == args.group and row[4] == args.context:
+                final_items.append(row)
     elif (args.context != 'all'):
         for row in values:
-            if row[3] == args.context:
-                final_values.append(row)
+            if row[4] == args.context:
+                final_items.append(row)
     elif (args.group != 'all'):
         for row in values:
-            if row[1] == args.group:
-                final_values.append(row)
+            if row[2] == args.group:
+                final_items.append(row)
     else:
-        final_values = values
-    return final_values
-def main():
+        final_items = values
+    return final_items
 
+def format_table_items(object, values):
+    args = object
+    return final_values
+
+def main():
+    #function from coloroma to render colors on all os
     init()
     check_for_config_file()
     get_configs()
     credentials = get_credentials()
     service = instantiate_api_service(credentials)
+    global values
     values = get_list_data(service) 
     
     ###Evaluate options containing no arguments
@@ -334,32 +324,34 @@ def main():
     if args.id_done:
         done_item_from_list(service, args.id_done)
     
-    if args.id_to_prioritize:
-        toggle_item_priority(service, args.id_to_prioritize)
-
-       
-    ###Filtering values based on context option
-
-    term_width = get_terminal_size() - 30
+    
     if not values:
         print('No data found.')
+    
     else:
-        final_values = prepare_table_items_for_display(args, values)
-        data = []
-        data.append([HEADER_ROW_COLOR + Style.BRIGHT + 'id',
-            'group', 'todo item',
-            'context' + Fore.RESET + Style.RESET_ALL])
+        final_values = filter_table_items_for_display(args, values)
+        item_id = args.id_to_prioritize
+        term_width = get_terminal_size() - 30
         for row in final_values:
             total_length = len(row[0]) + len(row[1]) + len(row[2]) + \
-            len(row[3])
-            other_columns = len(row[0]) + len(row[1]) + len(row[3]) - 5
+            len(row[3]) + len(row[4])
+            other_columns = len(row[0]) + len(row[1]) + len(row[2]) + \
+                    len(row[4])
             short_length = term_width - other_columns
             if(total_length > term_width):
-                shortened_text = textwrap.fill(row[2], width=short_length)
-                row[2] = shortened_text
-
+                shortened_text = textwrap.fill(row[3], width=short_length)
+                row[3] = shortened_text
+            if row[0] == item_id:
+                row[0] = Fore.YELLOW + row[0]
+                row[4] = row[4] + Style.RESET_ALL
+        data = []
+        data.append([HEADER_ROW_COLOR + Style.BRIGHT + 'id',
+            'today', 'group', 'todo item',
+            'context' + Fore.RESET + Style.RESET_ALL])
+    
+        
         for row in final_values:
-            data.append([row[0], row[1], row[2], row[3]])
+            data.append([row[0], row[1], row[2], row[3], row[4]])
         table = AsciiTable(data)
         display_table(table)
 
