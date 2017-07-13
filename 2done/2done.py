@@ -233,6 +233,11 @@ def done_item_from_list(object, id):
         body=body).execute()
     delete_item_from_list(service, id)
 
+def toggle_item_priority(object, id):
+    service = object
+    id = int(id)
+
+
 def get_list_data(object):
     service = object
     result = service.spreadsheets().values().get(
@@ -289,34 +294,9 @@ def display_table(object):
         table.inner_row_border = True
     print(table.table)
 
-def main():
-
-    init()
-    check_for_config_file()
-    get_configs()
-    credentials = get_credentials()
-    service = instantiate_api_service(credentials)
-
-    
-    ###Evaluate options containing no arguments
-    if args.web:
-        open_list_in_webbrowser()
-
-    if args.add:
-        add_item_to_list(service)
-    
-    if args.id_to_delete:
-        delete_item_from_list(service, args.id_to_delete)
-
-    if args.id_done:
-        done_item_from_list(service, args.id_done)
-
-    values = get_list_data(service) 
-       
-    ###Filtering values based on context option
+def prepare_table_items_for_display(object, values):
+    args = object
     final_values = []
-    term_width = get_terminal_size() - 30
-    
     if args.group != 'all' and args.context != 'all':
         for row in values:
             if row[1] == args.group and row[3] == args.context:
@@ -330,11 +310,41 @@ def main():
             if row[1] == args.group:
                 final_values.append(row)
     else:
-        final_values = values    
+        final_values = values
+    return final_values
+def main():
+
+    init()
+    check_for_config_file()
+    get_configs()
+    credentials = get_credentials()
+    service = instantiate_api_service(credentials)
+    values = get_list_data(service) 
     
+    ###Evaluate options containing no arguments
+    if args.web:
+        open_list_in_webbrowser()
+
+    if args.add:
+        add_item_to_list(service)
+    
+    if args.id_to_delete:
+        delete_item_from_list(service, args.id_to_delete)
+
+    if args.id_done:
+        done_item_from_list(service, args.id_done)
+    
+    if args.id_to_prioritize:
+        toggle_item_priority(service, args.id_to_prioritize)
+
+       
+    ###Filtering values based on context option
+
+    term_width = get_terminal_size() - 30
     if not values:
         print('No data found.')
     else:
+        final_values = prepare_table_items_for_display(args, values)
         data = []
         data.append([HEADER_ROW_COLOR + Style.BRIGHT + 'id',
             'group', 'todo item',
