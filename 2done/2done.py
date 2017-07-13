@@ -48,6 +48,10 @@ try:
             dest='context',
             default='all',
             choices=['all','home','work'])
+    parser.add_argument('-d','--delete',
+            help='delete an item by id',
+            action='store',
+            dest='delete')
     parser.add_argument('-t','--type',
             help='list only the items with the specified type',
             action='store',
@@ -155,6 +159,34 @@ def add_item_to_list(object):
     if DISPLAY_LIST_AFTER_ADD_ITEM != True:
         quit()
 
+def delete_item_from_list(object, id):
+    service = object
+    id = int(id)
+    startIndex = id
+    endIndex = id + 1
+    batch_update_values_request_body = {
+        "requests": [
+            {   
+                "deleteDimension": {
+                    "range": {
+                        "sheetId": 0,
+                        "dimension": "ROWS",
+                        "startIndex": startIndex,
+                        "endIndex": endIndex
+                    }
+                }
+            }
+        ]
+    }
+
+    request = service.spreadsheets().batchUpdate(
+            spreadsheetId=SPREADSHEET_ID,
+            body=batch_update_values_request_body)
+    response = request.execute()
+    print(response)
+    if 'replies' in response and 'spreadsheetId' in response:
+        print('Item # %s deleted from list' % id)
+
 def get_list_data(object):
     service = object
     result = service.spreadsheets().values().get(
@@ -200,6 +232,9 @@ def main():
 
     if args.add:
         add_item_to_list(service)
+    
+    if args.delete:
+        delete_item_from_list(service, args.delete)
 
     values = get_list_data(service) 
        
