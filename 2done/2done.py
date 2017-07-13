@@ -17,11 +17,13 @@ import os.path
 import argparse
 import textwrap
 import webbrowser
+import colorama
 
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
+from colorama import init, Fore, Back, Style
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CLIENT_SECRET_FILE = 'client_secrets.json'
@@ -258,6 +260,7 @@ def display_table(object):
 
 def main():
 
+    init()
     check_for_config_file()
     get_configs()
     credentials = get_credentials()
@@ -302,7 +305,8 @@ def main():
         print('No data found.')
     else:
         data = []
-        data.append(['id', 'type', 'todo item', 'context'])
+        data.append([Fore.GREEN + Style.BRIGHT + 'id', 'type', 'todo item', 'context' +
+            Fore.RESET + Style.RESET_ALL])
         for row in final_values:
             total_length = len(row[0]) + len(row[1]) + len(row[2]) + \
             len(row[3])
