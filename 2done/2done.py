@@ -59,7 +59,7 @@ try:
             action='store_true',
             dest='web')
     args = parser.parse_args()
-
+    print(args)
 except ImportError:
     flags = None
 
@@ -148,6 +148,8 @@ def add_item_to_list(object):
         spreadsheetId=SPREADSHEET_ID, range=RANGE,
         valueInputOption='USER_ENTERED',
         body=body).execute()
+    if DISPLAY_LIST_AFTER_ADD_ITEM != True:
+        quit()
 
 def get_list_data(object):
     service = object
@@ -234,6 +236,7 @@ def main():
             data.append([row[0], row[1], row[2], row[3]])
         table = AsciiTable(data)
         display_table(table)
+
     if __name__ == '__main__':
         main()
 
