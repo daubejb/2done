@@ -23,6 +23,7 @@ def check_for_config_file():
         config.add_section('display_options')
         config.set('display_options','display_list_after_add_item','True')
         config.set('display_options','display_lines_between_items','False')
+        config.set('display_options','header_row_color', 'GREEN')
         config.write(cfgfile)
         cfgfile.close()
         print('A configuration file was created with default values, see config.ini for configuration options')

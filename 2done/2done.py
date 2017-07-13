@@ -38,6 +38,7 @@ DISPLAY_LINES_BETWEEN_ITEMS = True
 WEB = 'https://docs.google.com/spreadsheets/d/%s' % (SPREADSHEET_ID)
 HISTORY_FILE = os.path.join(os.environ['HOME'], '.2done_history.txt')
 CONFIG_FILE = os.path.join(os.environ['HOME'], '.2done_config.ini')
+HEADER_ROW_COLOR = 'GREEN'
 
 try:
     parser = argparse.ArgumentParser(description='a free and open source \
@@ -244,7 +245,8 @@ def get_configs():
     global DISPLAY_LINES_BETWEEN_ITEMS
     DISPLAY_LINES_BETWEEN_ITEMS = parser.getboolean('display_options',
             'display_lines_between_items')
-
+    global HEADER_ROW_COLOR
+    HEADER_ROW_COLOR = parser.get('display_options','header_row_color')
 def open_list_in_webbrowser():
     webbrowser.open(WEB)
 
@@ -305,8 +307,8 @@ def main():
         print('No data found.')
     else:
         data = []
-        data.append([Fore.GREEN + Style.BRIGHT + 'id', 'type', 'todo item', 'context' +
-            Fore.RESET + Style.RESET_ALL])
+        data.append([Fore.GREEN + Style.BRIGHT + 'id', 'type', 'todo item',
+            'context' + Fore.RESET + Style.RESET_ALL])
         for row in final_values:
             total_length = len(row[0]) + len(row[1]) + len(row[2]) + \
             len(row[3])
