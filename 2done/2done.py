@@ -297,9 +297,52 @@ def filter_table_items_for_display(object, values):
         final_items = values
     return final_items
 
-def format_table_items(object, values):
-    args = object
-    return final_values
+def toggle_item_priority(object, id):
+    service = object
+    id = int(id)
+    A1 = id + 1
+    startIndex = id
+    endIndex = id + 1
+
+    range_ = ['%s!B%s' % (APPLICATION_NAME, A1)]
+    range2_ = ['%s!B%s:B%s' % (APPLICATION_NAME, A1, A1)]
+    request = service.spreadsheets().values().batchGet(
+            spreadsheetId=SPREADSHEET_ID,
+            ranges=range_,
+            valueRenderOption='UNFORMATTED_VALUE',
+            dateTimeRenderOption='FORMATTED_STRING')
+
+    response = request.execute()
+    if 'values' not in response['valueRanges'][0]:
+        priority = [' ']
+    else:
+        priority = response['valueRanges'][0]['values'][0]
+        if priority[0] == 'Yes' or priority[0] == 'yes':
+            priority[0] = ' '
+        else:
+            priority[0] = 'yes'
+    
+    batch_update_values_request_body = {
+            "value_input_option" : 'USER_ENTERED',
+            "data" : [
+                {
+                "requests": [
+                {
+                    "range": range2_,
+                "majorDimension": 'ROWS',
+                "values": [
+                    priority    
+                ],
+            }
+                ],
+            }
+                ],
+            }
+    request = service.spreadsheets().values().batchUpdate(
+            spreadsheetId=SPREADSHEET_ID,
+            body=batch_update_values_request_body)
+    response = request.execute()
+    print(response)
 
 def main():
     #function from coloroma to render colors on all os
@@ -324,6 +367,8 @@ def main():
     if args.id_done:
         done_item_from_list(service, args.id_done)
     
+    if args.id_to_prioritize:
+        toggle_item_priority(service, args.id_to_prioritize)
     
     if not values:
         print('No data found.')
