@@ -39,6 +39,7 @@ WEB = 'https://docs.google.com/spreadsheets/d/%s' % (SPREADSHEET_ID)
 HISTORY_FILE = os.path.join(os.environ['HOME'], '.2done_history.txt')
 CONFIG_FILE = os.path.join(os.environ['HOME'], '.2done_config.ini')
 HEADER_ROW_COLOR = 'GREEN'
+TODAY_COLOR = 'MAGENTA'
 
 try:
     parser = argparse.ArgumentParser(description='a free and open source \
@@ -232,7 +233,8 @@ def done_item_from_list(object, id):
         valueInputOption='USER_ENTERED',
         body=body).execute()
     delete_item_from_list(service, id)
-    
+    return
+
 def get_list_data(object):
     service = object
     result = service.spreadsheets().values().get(
@@ -243,11 +245,11 @@ def get_list_data(object):
 def get_ANSI_color(string):
     color = string
     color.upper()
-    if color == 'GREEN': color = '\033[32m'
+    if color == 'GREEN': color = '\033[92m'
     elif color == 'RED': color = '\033[31m'
-    elif color == 'YELLOW': color = '\033[33m'
+    elif color == 'YELLOW': color = '\033[93m'
     elif color == 'BLUE': color = '\033[34m'
-    elif color == 'PINK': color = '\033[35m'
+    elif color == 'MAGENTA': color = '\033[95m'
     elif color == 'CYAN': color = '\033[36m'
     elif color == 'NORMAL': color = '\033[39m'
     elif color == 'WHITE': color = '\033[37m'
@@ -266,6 +268,10 @@ def get_configs():
     global HEADER_ROW_COLOR
     temp_HEADER_ROW_COLOR = parser.get('display_options','header_row_color')
     HEADER_ROW_COLOR = get_ANSI_color(temp_HEADER_ROW_COLOR)
+
+    global TODAY_COLOR
+    temp_TODAY_COLOR = parser.get('display_options','today_color')
+    TODAY_COLOR = get_ANSI_color(temp_TODAY_COLOR)
     
 def open_list_in_webbrowser():
     webbrowser.open(WEB)
@@ -346,29 +352,19 @@ def main():
     get_configs()
     credentials = get_credentials()
     service = instantiate_api_service(credentials)
-    global values
-    values = get_list_data(service) 
     
     ###Evaluate options containing no arguments
-    if args.web:
-        open_list_in_webbrowser()
-
-    if args.add:
-        add_item_to_list(service)
-    
+    if args.web: open_list_in_webbrowser()
+    if args.add: add_item_to_list(service)
     if args.id_to_delete:
         delete_item_from_list(service, args.id_to_delete)
-
     if args.id_done:
         done_item_from_list(service, args.id_done)
-    
     if args.id_to_prioritize:
         toggle_item_priority(service, args.id_to_prioritize)
-        values = get_list_data(service)
-
+    values = get_list_data(service) 
     if not values:
         print('No data found.')
-    
     else:
         final_values = filter_table_items_for_display(args, values)
         item_id = args.id_to_prioritize
@@ -384,13 +380,12 @@ def main():
                 row[3] = shortened_text
             yes = ['YES','Yes','yes','Y','y']
             if row[1] in yes:
-                row[0] = Fore.YELLOW + row[0]
+                row[0] = TODAY_COLOR + row[0]
                 row[4] = row[4] + Style.RESET_ALL
         data = []
         data.append([HEADER_ROW_COLOR + Style.BRIGHT + 'id',
             'today', 'group', 'todo item',
             'context' + Fore.RESET + Style.RESET_ALL])
-    
         
         for row in final_values:
             data.append([row[0], row[1], row[2], row[3], row[4]])
