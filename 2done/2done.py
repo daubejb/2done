@@ -312,7 +312,7 @@ def toggle_item_priority(object, id):
             dateTimeRenderOption='FORMATTED_STRING')
 
     response = request.execute()
-    print(response)
+    
     if 'values' not in response['valueRanges'][0]:
         priority = "yes"
     else:
@@ -321,7 +321,6 @@ def toggle_item_priority(object, id):
             priority = " "
         else:
             priority = 'yes'
-    print(priority) 
     
     value_input_option = 'USER_ENTERED'
 
@@ -338,8 +337,7 @@ def toggle_item_priority(object, id):
             includeValuesInResponse=True,
             body=body_)
     response = request.execute()
-
-    print(response)
+    return
 
 def main():
     #function from coloroma to render colors on all os
@@ -365,9 +363,9 @@ def main():
         done_item_from_list(service, args.id_done)
     
     if args.id_to_prioritize:
-        print(args.id_to_prioritize)
         toggle_item_priority(service, args.id_to_prioritize)
-            
+        values = get_list_data(service)
+
     if not values:
         print('No data found.')
     
@@ -384,7 +382,8 @@ def main():
             if(total_length > term_width):
                 shortened_text = textwrap.fill(row[3], width=short_length)
                 row[3] = shortened_text
-            if row[0] == item_id:
+            yes = ['YES','Yes','yes','Y','y']
+            if row[1] in yes:
                 row[0] = Fore.YELLOW + row[0]
                 row[4] = row[4] + Style.RESET_ALL
         data = []
@@ -396,6 +395,7 @@ def main():
         for row in final_values:
             data.append([row[0], row[1], row[2], row[3], row[4]])
         table = AsciiTable(data)
+        os.system('cls' if os.name == 'nt' else 'clear')
         display_table(table)
 
     if __name__ == '__main__':
