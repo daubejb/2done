@@ -62,6 +62,10 @@ try:
             help='mark an item as done by id',
             action='store',
             dest='id_done')
+    parser.add_argument('-f', '--focus',
+            help='toggle focus mode - displays on today items',
+            action='store_true',
+            dest='focus')
     parser.add_argument('-g','--group',
             help='list only the items with the specified group',
             action='store',
