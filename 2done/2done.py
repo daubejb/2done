@@ -351,6 +351,36 @@ def toggle_item_priority(object, id):
     response = request.execute()
     return
 
+def move_item_to_new_position(object, id):
+    service = object
+    ### google api call to insert row at destination position
+    destination_row_index = int(id[1])
+    item_to_move = int(id[0])
+    end_index = item_to_move + 1
+    batch_update_spreadsheet_request_body = {
+            'requests': [
+                {
+                    "moveDimension": {
+                        "source": {
+                            "sheetId": 0,
+                            "dimension": "ROWS",
+                            "startIndex": item_to_move,
+                            "endIndex": end_index
+                            },
+                        "destinationIndex": destination_row_index
+                        }
+                    },
+                ]
+            }
+    
+    request = service.spreadsheets().batchUpdate(
+            spreadsheetId=SPREADSHEET_ID,
+            body=batch_update_spreadsheet_request_body)
+    response = request.execute() 
+    ### google api call to cutPaste item to move to destination position
+
+
+
 def main():
     #function from coloroma to render colors on all os
     init()
@@ -360,14 +390,15 @@ def main():
     service = instantiate_api_service(credentials)
     
     ###Evaluate options containing no arguments
-    if args.web: open_list_in_webbrowser()
     if args.add: add_item_to_list(service)
+    if args.web: open_list_in_webbrowser()
     if args.id_to_delete:
         delete_item_from_list(service, args.id_to_delete)
     if args.id_done:
         done_item_from_list(service, args.id_done)
     if args.id_to_prioritize:
         toggle_item_priority(service, args.id_to_prioritize)
+    if args.id: move_item_to_new_position(service, args.id)
     values = get_list_data(service) 
     if not values:
         print('No data found.')
