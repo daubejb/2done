@@ -68,6 +68,12 @@ try:
             dest='group',
             default='all',
             choices=ACTIONS)
+    parser.add_argument('-m','--move',
+            help='enter the id of the item you want to move and the \
+                    the destination position',
+            nargs=2,
+            dest='id',
+            action='store')
     parser.add_argument('-t','--today',
             help='toggle an item as important for today by id',
             action='store',
