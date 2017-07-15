@@ -25,6 +25,7 @@ def check_for_config_file():
         config.set('display_options','display_lines_between_items','False')
         config.set('display_options','header_row_color', 'GREEN')
         config.set('display_options','today_color', 'MAGENTA')
+        config.set('display_options','focus','False')
         config.write(cfgfile)
         cfgfile.close()
         print('A configuration file was created with default values, see config.ini for configuration options')
